@@ -1,0 +1,25 @@
+JUCE_ROOT = /path/to/juce
+TARGET = thebassjuicer
+BUILD_DIR = Builds/Linux-arm
+
+CXX = arm-linux-gnueabihf-g++
+CXXFLAGS = -std=c++17 -Wall -Wextra -Wpedantic -I$(JUCE_ROOT)/modules -I$(JUCE_ROOT)/modules/juce_audio_processors/format_types/VST3_SDK -DJUCE_VST3_CAN_REPLACE_VST2=0 -DJUCE_DISPLAY_SPLASH_SCREEN=0
+LDFLAGS = -L$(JUCE_ROOT)/Linux-arm/lib -ljuce_audio_plugin_client -ljuce_audio_processors -ljuce_core
+
+SRCS = MyPluginAudioProcessor.cpp PluginEditor.cpp
+OBJS = $(addprefix $(BUILD_DIR)/, $(SRCS:.cpp=.o))
+
+all: $(TARGET).so
+
+$(TARGET).so: $(OBJS)
+	@mkdir -p $(BUILD_DIR)
+	$(CXX) $(OBJS) $(LDFLAGS) -shared -o $(BUILD_DIR)/$@
+
+$(BUILD_DIR)/%.o: %.cpp
+	@mkdir -p $(@D)
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+clean:
+	rm -rf $(BUILD_DIR)
+
+.PHONY: all clean

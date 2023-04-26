@@ -1,0 +1,24 @@
+JUCE_ROOT = /Users/your_username/path_to_juce
+TARGET = thebassjuicer
+BUILD_DIR = Builds/MacOSX_ARM
+
+CXXFLAGS = -std=c++17 -Wall -Wextra -Wpedantic -I$(JUCE_ROOT)/modules -I$(JUCE_ROOT)/modules/juce_audio_processors/format_types/VST3_SDK -DJUCE_VST3_CAN_REPLACE_VST2=0 -DJUCE_DISPLAY_SPLASH_SCREEN=0
+LDFLAGS = -L$(JUCE_ROOT)/bin -ljuce_audio_plugin_client -ljuce_audio_processors -ljuce_core -framework CoreAudio -framework CoreMIDI -framework CoreFoundation -framework AudioToolbox -framework Accelerate -framework QuartzCore
+
+SRCS = MyPluginAudioProcessor.cpp PluginEditor.cpp
+OBJS = $(addprefix $(BUILD_DIR)/, $(SRCS:.cpp=.o))
+
+all: $(TARGET).vst3
+
+$(TARGET).vst3: $(OBJS)
+	@mkdir -p $(BUILD_DIR)
+	$(CXX) $(OBJS) $(LDFLAGS) -bundle -arch arm64 -Xlinker -export_dynamic -o $(BUILD_DIR)/$@
+
+$(BUILD_DIR)/%.o: %.cpp
+	@mkdir -p $(@D)
+	$(CXX) $(CXXFLAGS) -c $< -o $@ -arch arm64
+
+clean:
+	rm -rf $(BUILD_DIR)
+
+.PHONY: all clean
